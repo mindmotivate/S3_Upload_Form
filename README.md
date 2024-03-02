@@ -15,4 +15,4 @@
 - **Package Dependencies:** Install packages like aws-sdk, express, and more for enhanced functionality.
 - **Terraform Integration:** Use Terraform to set up your S3 bucket and associated resources.
 
-## ***Please read the instructions.md carefully before proceeding***
+## ***Please read the "Instructions.md" carefully before proceeding***
