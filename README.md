@@ -15,3 +15,5 @@ The S3 Upload Form project simplifies the process of uploading files to your Ama
 
 - **Package Dependencies:** Install packages like aws-sdk, express, and more for enhanced functionality.
 - **Terraform Integration:** Use Terraform to set up your S3 bucket and associated resources.
+
+## ***Please read the instructions.md carefully before proceeding***
