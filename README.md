@@ -1,3 +1,7 @@
+
+
+<img src="https://github.com/mindmotivate/S3_Upload_Form/assets/130941970/f946ed7c-c25f-4a5f-84f2-d32a0f0fb92c" width="73%" height="auto">
+
 # S3 Upload Form Project
 
 ## Overview
