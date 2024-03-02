@@ -4,8 +4,7 @@
 
 # S3 Upload Form Project
 
-## Overview
-The S3 Upload Form project simplifies the process of uploading files to your Amazon S3 bucket. Whether you’re building a web app, managing user-generated content, or handling critical business files, this form has got your back.
+### The S3 Upload Form project simplifies the process of uploading files to your Amazon S3 bucket. Whether you’re building a web app, managing user-generated content, or handling critical business files, this form has got your back!
 
 - **User-Friendly:** Users can effortlessly upload files via a clean interface.
 - **Customizable:** Tailor the form to your needs—add email notifications, tweak the design, and make it yours.
