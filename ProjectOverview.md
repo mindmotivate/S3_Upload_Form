@@ -1,225 +1,203 @@
-## Module 1: S3 Bucket for Website
-This module sets up an S3 bucket named "passportint" to host a website. It's tagged with metadata to identify it as part of the development environment.
+# S3 Bucket creation
 
+hcl
 ```
-resource "aws_s3_bucket" "passportint" {
-  bucket = "passportint"
+resource "aws_s3_bucket" "s3_upload_bucket" {
+  bucket = var.bucket_name
 
   tags = {
-    Name        = "passportint"
-    Environment = "Development"
+    Name        = var.bucket_name
+    Environment = "Dev"
   }
+  force_destroy = true
 }
 ```
 
-## Module 2: S3 Bucket Website Configuration
-This module configures the "passportint" S3 bucket for website hosting. It specifies the default index document as "index.html" and the error document as "error.html".
+# Blocks public access to the S3 bucket to prevent unauthorized access and enforce security
 
+hcl
 ```
-resource "aws_s3_bucket_website_configuration" "passportint_website" {
-  bucket = aws_s3_bucket.passportint.id
-
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "error.html"
-  }
+resource "aws_s3_bucket_public_access_block" "s3_upload_bucket_public_access_block" {
+  bucket = aws_s3_bucket.s3_upload_bucket.bucket
+  block_public_acls       = false  # Prevents adding objects to buckets
+  block_public_policy     = false  # Bucket rejects policies that allow public access
+  ignore_public_acls     = false  # If public access is granted by an ACL, it will be ignored
+  restrict_public_buckets = false  # Only AWS principals and authorized users can access bucket
 }
 ```
 
-## Module 3: S3 Public Access Block
-This module ensures that public access is blocked for the "passportint" S3 bucket. It sets up configurations to prevent public ACLs, public policies, and restricts access to only authorized AWS principals.
+# S3 bucket policy allowing access to certain actions for specific AWS services
 
+hcl
 ```
-resource "aws_s3_bucket_public_access_block" "passportint_access_block" {
-  bucket = aws_s3_bucket.passportint.bucket
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-```
+resource "aws_s3_bucket_policy" "s3_upload_bucket_policy" {
+  bucket = aws_s3_bucket.s3_upload_bucket.id
 
-## Module 4: S3 Server-Side Encryption
-This module enables server-side encryption for the "passportint" S3 bucket using AES256. It ensures that data stored in the bucket is encrypted at rest.
-
-```
-resource "aws_s3_bucket_server_side_encryption_configuration" "passportint_encryption_config" {
-  bucket = aws_s3_bucket.passportint.bucket
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-```
-
-## Module 5: S3 Versioning
-This module enables versioning for the "passportint" S3 bucket. Versioning helps protect objects from accidental deletion or modification by maintaining multiple versions of each object.
-
-```
-resource "aws_s3_bucket_versioning" "passportint_versioning" {
-  bucket = aws_s3_bucket.passportint.bucket
-
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-```
-
-## Module 6: Upload Website Content to S3
-This module uploads the website's HTML and image files to the "passportint" S3 bucket. It ensures that the specified files are available for hosting on the website.
-
-```
-resource "aws_s3_object" "content" {
-  depends_on = [aws_s3_bucket.passportint]
-
-  bucket                  = aws_s3_bucket.passportint.bucket
-  key                     = "index.html"
-  source                  = "./index.html"
-  server_side_encryption = "AES256"
-  content_type           = "text/html"
-}
-
-resource "aws_s3_object" "international_women" {
-  depends_on = [aws_s3_bucket.passportint]
-
-  bucket                  = aws_s3_bucket.passportint.bucket
-  key                     = "internationalwomen.gif"
-  source                  = "./internationalwomen.gif"
-  server_side_encryption = "AES256"
-  content_type           = "image/gif"
-}
-```
-
-## Module 7: CloudFront Origin Access Control
-This module configures origin access control for CloudFront. It defines settings related to how CloudFront accesses the S3 bucket origin.
-
-```
-resource "aws_cloudfront_origin_access_control" "site_access" {
-  name                              = "security_cf_s3_oac_passportint"
-  origin_access_control_origin_type = "s3"
-  signing_behavior                  = "always"
-  signing_protocol                  = "sigv4"
-}
-```
-
-## Module 8: CloudFront Distribution
-This module creates a CloudFront distribution for the website. It specifies settings such as the S3 origin, cache behavior, access restrictions, and viewer certificate.
-
-```
-resource "aws_cloudfront_distribution" "site_access" {
-
-  origin {
-    domain_name = aws_s3_bucket.www-ipgame2_bucket.bucket_regional_domain_name
-    origin_id   = "s3"
-
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.OAI.cloudfront_access_identity_path
-    }
-  }
-
-  enabled             = true
-  default_root_object = "index.html"
-
-  default_cache_behavior {
-    allowed_methods  = ["GET", "HEAD"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "s3"
-
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
+  policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": "*",
+        "Action": "s3:ListBucket",
+        "Resource": [
+          "arn:aws:s3:::${var.bucket_name}",
+          "arn:aws:s3:::${var.bucket_name}/*"
+        ]
+      },
+      {
+        "Effect": "Allow",
+        "Principal": "*",
+        "Action": [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ],
+        "Resource": [
+          "arn:aws:s3:::${var.bucket_name}",
+          "arn:aws:s3:::${var.bucket_name}/*"
+        ]
       }
-    }
+    ]
+  })
+}
+```
 
-    # viewer_protocol_policy = "https-only"
-    viewer_protocol_policy = "redirect-to-https"
-    # viewer_protocol_policy = "allow-all"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
 
+
+
+# SNS topic for notifications.
+
+hcl
+```
+resource "aws_sns_topic" "topic" {
+  name = "s3-bucket-notifications"
+}
+```
+
+
+# SNS topic policy allowing S3 to publish messages and allowing subscription
+
+hcl
+```
+resource "aws_sns_topic_policy" "bucket_to_topic" {
+  arn = aws_sns_topic.topic.arn
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "AllowS3ToPublishMessages"
+        Effect    = "Allow"
+        Principal = {
+          Service = "s3.amazonaws.com"
+        }
+        Action    = "sns:Publish"
+        Resource  = aws_sns_topic.topic.arn
+        Condition = {
+          ArnLike = {
+            "aws:SourceArn" = aws_s3_bucket.s3_upload_bucket.arn
+          }
+        }
+      },
+      {
+        Sid       = "AllowSubscriptions"
+        Effect    = "Allow"
+        Principal = {
+          AWS = "*"
+        }
+        Action    = "sns:Subscribe"
+        Resource  = aws_sns_topic.topic.arn
+      }
+    ]
+  })
+
+  depends_on = [aws_sns_topic.topic]
+}
+
+# Subscribe an email address to the SNS topic
+#resource "aws_sns_topic_subscription" "email_subscription" {
+#  topic_arn = aws_sns_topic.topic.arn
+#  protocol  = "email"
+#  endpoint  = "example@gmail.com"
+#}
+```
+
+
+
+# Subscribe email addresses to the SNS topic
+
+hcl
+```
+resource "aws_sns_topic_subscription" "email_subscriptions" {
+  count     = length(var.email_addresses)
+  topic_arn = aws_sns_topic.topic.arn
+  protocol  = "email"
+  endpoint  = var.email_addresses[count.index]
+}
+
+
+output "email_addresses_output" {
+  value = "Emails will be sent to the following email addresses ${join(", ", var.email_addresses)}"
+}
+```
+
+# S3 bucket notification to SNS topic.
+
+hcl
+```
+resource "aws_s3_bucket_notification" "s3_notif" {
+  bucket = aws_s3_bucket.s3_upload_bucket.id
+
+  topic {
+    topic_arn = aws_sns_topic.topic.arn
+    events    = ["s3:ObjectCreated:*", "s3:ObjectRemoved:*"]  # Including object deletion event
   }
-
-  price_class = "PriceClass_All"
-
-  restrictions {
-    geo_restriction {
-      restriction_type = "whitelist"
-      locations        = ["US", "CA", "GB"]
-    }
-  }
-
-  viewer_certificate {
-    cloudfront_default_certificate = true
-    ssl_support_method = "sni-only"
-    acm_certificate_arn = data.aws_acm_certificate.issued.arn
-    minimum_protocol_version = "TLSv1.2_2021"
-  }
-
-aliases = ["malgusclan.com", "www.malgusclan.com"]  # Add your custom domain aliases here
-
-
-depends_on = [aws_cloudfront_origin_access_identity.OAI]
-}
-
-```
-
-## Module 9: S3 Bucket Policy for CloudFront Origin Access Identity (OAI)
-This module sets up a bucket policy allowing access to objects in the S3 bucket by a CloudFront Origin Access Identity (OAI). It relies on an IAM policy document to define the permissions and a bucket policy resource to apply those permissions to the S3 bucket.
-
-```
-resource "aws_s3_bucket_policy" "OAI_policy" {
-  bucket = aws_s3_bucket.www-ipgame2_bucket.id
-  policy = data.aws_iam_policy_document.s3_policy.json
-
-  depends_on = [aws_cloudfront_distribution.site_access]
 }
 ```
 
-## Module 10: IAM Policy Document for S3 Bucket
-This module creates an IAM policy document specifying the permissions required for the CloudFront Origin Access Identity (OAI) to access objects in the S3 bucket. It allows the OAI to perform the "s3:GetObject" action on objects within the bucket.
+
+
+
+# Variables used
+
+hcl
+```
+variable "bucket_name" {
+  type    = string
+  default = "ipgame2bucket"
+}
+
+
+
+variable "email_addresses" {
+  type    = list(string)
+  default = [""]
+}
+
+
+/* optional amp version
+variable "bucket_name" {
+  type = map(string)
+  default = {}
+}
+*/
 
 ```
-data "aws_iam_policy_document" "s3_policy" {
-  statement {
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.www-ipgame2_bucket.arn}/*"]
 
-    principals {
-      type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.OAI.iam_arn]
-    }
-  }
-}
+
+# .tfvars file to store your email list
+
+hcl
+```
+email_addresses = [
+    "example1@email.com",
+    "example2@email.com",
+    "example3@email.com",
+    "example4@email.com",
+    "example5@email.com",
+  
+]
 ```
 
-## Module 11: Outputs
-This module provides outputs including the CloudFront URL and a clickable CloudFront URL for easy access to the website.
 
-```
-output "cloudfront_url" {
-  value       = aws_cloudfront_distribution.site_access.domain_name
-  description = "CloudFront domain name"
-}
 
-output "cloudfront_url_link" {
-  value       = format("https://%s", aws_cloudfront_distribution.site_access.domain_name)
-  description = "Clickable CloudFront URL"
-}
-
-output "cloudfront_custom_domain" {
-  value       = aws_route53_record.site-domain.fqdn
-  description = "Custom domain name"
-}
-
-output "cloudfront_custom_domain_link" {
-  value = format("https://%s", aws_route53_record.site-domain.fqdn)
-  description = "Clickable CloudFront URL"
-}
-```
