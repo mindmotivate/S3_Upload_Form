@@ -1,19 +1,13 @@
-![alt text](background.jpg)
+# S3 Upload Form Project
+
+## Overview
+The S3 Upload Form project simplifies the process of uploading files to your Amazon S3 bucket. Whether you’re building a web app, managing user-generated content, or handling critical business files, this form has got your back.
+
+- **User-Friendly:** Users can effortlessly upload files via a clean interface.
+- **Customizable:** Tailor the form to your needs—add email notifications, tweak the design, and make it yours.
+- **Local Server:** The form runs on your local server, ensuring privacy during testing and development.
+- **Test Environment:** Safely simulate real-world scenarios without exposing your setup externally.
 
 
-
-
-# Welcome to the International Passport Game GitHub Repo!
-## Forking Instructions:
-
-1. **Navigate to Repository**: Visit the repository you want to fork on GitHub.
-
-2. **Fork the Repository**: Click the "Fork" button at the top right of the repository page. This will create a copy of the repository in your GitHub account.
-
-3. **Clone Your Fork**: Click on the green "Code" button on your forked repository's page and copy the URL. Open your terminal or command prompt, navigate to the directory where you want to clone the repository, and use the `git clone` command followed by the URL you copied.
-
-4. **Verify Cloning**: Once the cloning process is complete, navigate to the cloned repository directory using the `cd` command. Verify that all the files and folders from your forked repository are present.
-
-Remember to replace the variables such as certificate and domain name information as needed before attempting to run the code in Terraform.
-
-Enjoy the International Passport Game!
+- **Package Dependencies:** Install packages like aws-sdk, express, and more for enhanced functionality.
+- **Terraform Integration:** Use Terraform to set up your S3 bucket and associated resources.
