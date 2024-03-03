@@ -1,6 +1,6 @@
 variable "bucket_name" {
   type    = string
-  default = "ipgame2bucket"
+  default = "enteryourbucketnamehere"
 }
 
 
