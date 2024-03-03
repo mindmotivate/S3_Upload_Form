@@ -175,7 +175,7 @@ variable "email_addresses" {
 }
 
 
-/* optional amp version
+/* optional map version
 variable "bucket_name" {
   type = map(string)
   default = {}
