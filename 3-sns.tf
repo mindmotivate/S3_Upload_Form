@@ -38,6 +38,7 @@ resource "aws_sns_topic_policy" "bucket_to_topic" {
   depends_on = [aws_sns_topic.topic]
 }
 
+# Hardcoded email method
 # Subscribe an email address to the SNS topic
 #resource "aws_sns_topic_subscription" "email_subscription" {
 #  topic_arn = aws_sns_topic.topic.arn
@@ -45,7 +46,7 @@ resource "aws_sns_topic_policy" "bucket_to_topic" {
 #  endpoint  = "example@gmail.com"
 #}
 
-
+# List string method
 # Subscribe email addresses to the SNS topic
 resource "aws_sns_topic_subscription" "email_subscriptions" {
   count     = length(var.email_addresses)
@@ -58,6 +59,19 @@ resource "aws_sns_topic_subscription" "email_subscriptions" {
 output "email_addresses_output" {
   value = "Emails will be sent to the following email addresses ${join(", ", var.email_addresses)}"
 }
+
+# Map string method
+#resource "aws_sns_topic_subscription" "email_subscriptions" {
+#  topic_arn  = aws_sns_topic.topic.arn
+#  protocol   = "email"
+#  for_each = var.email_addresses
+#  endpoint = each.value  # Access the value associated with each key
+#}
+
+
+#output "email_addresses_output" {
+#  value = format("Emails will be sent to the following email addresses: %s", join(", ", values(var.email_addresses)))
+#}
 
 
 # S3 bucket notification to SNS topic.
